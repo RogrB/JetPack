@@ -31,7 +31,8 @@ public class JetPack extends Application {
     // Oppretter player og obstacle objekt
     Player player = new Player();
     Obstacle[] obstacles;
-
+    private int upCount = 0;
+    private int score = 0;
     
     // Oppretter GraphicsContext og tidsvariabel
     private GraphicsContext gc;
@@ -45,46 +46,55 @@ public class JetPack extends Application {
             new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, false));
     
     private Parent initSpace() {
+        // Initialize Game
         Pane root = new Pane();
         root.setPrefSize(WIDTH, HEIGHT);
         root.setBackground(new Background(bg));
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         gc = canvas.getGraphicsContext2D();
 
-
         root.getChildren().addAll(canvas);
         
         createObstacles();
-        
+        // Animationtimer
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 time += 0.05;
+                drawPlayer(gc);
+                if (player.getUpDirection()) { // Funksjonalitet for Hopp
+                    if (upCount < 10) {
+                        player.setY(player.getY()-5);
+                        drawPlayer(gc);
+                        upCount++;
+                    }
+                    if (upCount >= 10 && upCount <= 20) { // "hangtime" mot slutten av hoppet
+                        player.setY(player.getY()-1);
+                        drawPlayer(gc);
+                        upCount++;
+                    }
+                    if (upCount > 20) {
+                        player.setUpDirection(false); // Hopp ferdig
+                        upCount = 0;
+                    }
+                }
+                else {
+                    if (player.getY() < player.getMaxY()) { // På vei ned igjen
+                        player.setY(player.getY()+3);
+                        drawPlayer(gc);
+                    }
+                }
 
-                if (time >= 0.35) {
-                    // Tegner ny frame - player
-                    drawPlayer(gc);
-                    
+                if (time >= 0.35) { // Flytter obstacles til venstre på skjermen
                     for (Obstacle o : obstacles) {
                         // Tegner ny frame - obstacles
                         o.setX(o.getX()-10);
                         drawObstacle(o, gc);
                         checkCollision(o);
-                        if (o.getX()+o.getSize() < 0) {
+                        if (o.getX()+o.getSize() < 0) { // Når obstacles går ut av skjermen - resettet X verdi
                             o.setX(1700);
+                            o.setPassed(false);
                         }
-                    }
-                    
-                    if (!player.getUpDirection()) { // Bevegelse - player
-                        if (player.getY() < player.getMaxY()) {
-                            // Svever ned mot bakken - så lenge man fortsatt er over bakken
-                            player.setY(player.getY()+10);
-                        }
-                    }
-                    else { // Bevegelse - player
-                        // Fortsatt på vei opp etter hoppet
-                        player.setY(player.getY()-25);
-                        player.setUpDirection(false);
                     }
                     time = 0;
                 }
@@ -115,22 +125,6 @@ public class JetPack extends Application {
             }
         });        
     }
-    
-    /* public void gameTimer() {
-        for (;;) {
-            try { 
-                Thread.sleep(1000); 
-                gameTimer++;
-                System.out.println(gameTimer);
-                if (gameTimer == 5) {
-                    createObstacle();
-                }
-            }
-            catch (InterruptedException e) { 
-                e.printStackTrace(); 
-            } 
-        }
-    }*/
 
     public static void main(String[] args) {
         launch(args);
@@ -148,8 +142,6 @@ public class JetPack extends Application {
     public void jump(GraphicsContext gc) {
         // HOPP!
         player.setUpDirection(true);
-        player.setY(player.getY() - 25);
-        drawPlayer(gc);
     }    
     
     public void createObstacles() {
@@ -195,6 +187,15 @@ public class JetPack extends Application {
         if (o.getX() < player.getX()+player.getSize() && o.getY() < player.getY()+player.getSize()) {
             if (player.getX() < o.getX()+o.getSize() && player.getY() < o.getY()+o.getSize()) {
                 System.out.println("kollision");
+            }
+        }
+        
+        // Sjekker om objekt har passert player - legger til score
+        if (o.getX()+o.getSize() < player.getX()) {
+            if (!o.getPassed()) {
+                o.setPassed(true);
+                score++;
+                System.out.println("Score: " + score);
             }
         }
     }

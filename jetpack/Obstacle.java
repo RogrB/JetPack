@@ -7,6 +7,7 @@ public class Obstacle {
     private int size;
     private MovePattern movepattern;
     private int oldX;
+    private boolean passed = false;
     
     public Obstacle(int x, int y, int size) {
         this.x = x;
@@ -49,6 +50,14 @@ public class Obstacle {
     
     public void setOldX(int oldx) {
         this.oldX = oldx;
+    }
+    
+    public boolean getPassed() {
+        return this.passed;
+    }
+    
+    public void setPassed(boolean passed) {
+        this.passed = passed;
     }
     
 }

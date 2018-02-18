@@ -10,7 +10,7 @@ public class Player {
     private int health;
     private boolean alive;
     private final int maxY = 672;
-    private boolean upDirection;
+    private boolean upDirection = false;
     
     public int getX() {
         return this.x;
