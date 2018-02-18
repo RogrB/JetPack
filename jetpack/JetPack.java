@@ -19,7 +19,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.event.EventHandler ;
 import javafx.animation.AnimationTimer;
 import javafx.scene.text.Text;
-import java.util.concurrent.ThreadLocalRandom;
+import javafx.scene.text.Font;
 
 
 public class JetPack extends Application {
@@ -33,11 +33,14 @@ public class JetPack extends Application {
     Obstacle[] obstacles;
     private int upCount = 0;
     private int score = 0;
+    private int collisions = 0;
     
     // Oppretter GraphicsContext og tidsvariabel
     private GraphicsContext gc;
     private double time;
     private int gameTimer;
+    private Text scoreText;
+    private Text lifeText;
     
     // Bakgrunnsbilde
     String imgpath = "image/background.jpg";
@@ -48,12 +51,20 @@ public class JetPack extends Application {
     private Parent initSpace() {
         // Initialize Game
         Pane root = new Pane();
+        String scoreT = "Score: " + Integer.toString(score);
+        String lifeT = "Collisions: " + Integer.toString(collisions);
+        scoreText = new Text(20, 20, scoreT); // Viser score øverst i venstre hjørne
+        scoreText.setFill(Color.WHITE);
+        scoreText.setFont(Font.font ("Verdana", 20));
+        lifeText = new Text(1000, 20, lifeT); // Viser collisions øverst i høyre hjørne
+        lifeText.setFill(Color.WHITE);
+        lifeText.setFont(Font.font("Verdana", 20));
         root.setPrefSize(WIDTH, HEIGHT);
         root.setBackground(new Background(bg));
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         gc = canvas.getGraphicsContext2D();
 
-        root.getChildren().addAll(canvas);
+        root.getChildren().addAll(canvas, scoreText, lifeText);
         
         createObstacles();
         // Animationtimer
@@ -91,6 +102,7 @@ public class JetPack extends Application {
                         o.setX(o.getX()-10);
                         drawObstacle(o, gc);
                         checkCollision(o);
+                        checkScore(o);
                         if (o.getX()+o.getSize() < 0) { // Når obstacles går ut av skjermen - resettet X verdi
                             o.setX(1700);
                             o.setPassed(false);
@@ -145,32 +157,18 @@ public class JetPack extends Application {
     }    
     
     public void createObstacles() {
-        // Genererer array med obstacles - Kan gjøres random
-        obstacles = new Obstacle[10];
-        
-        int min = 1900;
-        
-        for (int i = 0; i < obstacles.length; i++) {
-            if (i == 0) {
-                obstacles[i] = new Obstacle(800, 550, 170);
-            }
-            if (i == 1) {
-                obstacles[i] = new Obstacle(1300, 450, 250);                
-            }
-            if (i == 2) {
-                obstacles[i] = new Obstacle(1700, 0, 300);
-            }
-            if (i == 3) {
-                obstacles[i] = new Obstacle(1700, 475, 275);
-            }
-            if (i > 3) {
-                int x = ThreadLocalRandom.current().nextInt(min, min+300 + 1);
-                int y = ThreadLocalRandom.current().nextInt(1, 700);
-                int size = ThreadLocalRandom.current().nextInt(1, 350);
-                obstacles[i] = new Obstacle(x, y, size);
-                min = x;
-            }
-        }
+        // Genererer array med obstacles
+        obstacles = new Obstacle[7];
+        obstacles[0] = new Obstacle(800, 550, 170);
+        obstacles[1] = new Obstacle(1300, 450, 250);                
+        obstacles[2] = new Obstacle(1700, 0, 300);
+        obstacles[3] = new Obstacle(1700, 475, 275);
+        obstacles[4] = new Obstacle(2100, 500, 375);
+        obstacles[5] = new Obstacle(2475, 10, 200);
+        obstacles[6] = new Obstacle(2475, 400, 200);
+        //obstacles[7] = new Obstacle(2250, 550, 165);
+        //obstacles[8] = new Obstacle(2450, 300, 400);
+        //obstacles[9] = new Obstacle(2450, 550, 100);
     }
     
     public void drawObstacle(Obstacle o, GraphicsContext gc) {
@@ -186,16 +184,22 @@ public class JetPack extends Application {
         // Sjekker Kollisjon mellom spiller og obstacle
         if (o.getX() < player.getX()+player.getSize() && o.getY() < player.getY()+player.getSize()) {
             if (player.getX() < o.getX()+o.getSize() && player.getY() < o.getY()+o.getSize()) {
-                System.out.println("kollision");
+                collisions++;
+                String lText = "Collisions: " + Integer.toString(collisions);
+                lifeText.setText(lText); // Skriver collisions til screen
             }
         }
         
+    }
+     
+    public void checkScore(Obstacle o) {
         // Sjekker om objekt har passert player - legger til score
         if (o.getX()+o.getSize() < player.getX()) {
             if (!o.getPassed()) {
                 o.setPassed(true);
                 score++;
-                System.out.println("Score: " + score);
+                String sText = "Score: " + Integer.toString(score);
+                scoreText.setText(sText); // Skriver score til screen
             }
         }
     }
