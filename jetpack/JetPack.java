@@ -74,7 +74,7 @@ public class JetPack extends Application {
                 time += 0.05;
                 drawPlayer(gc);
                 if (player.getUpDirection()) { // Funksjonalitet for Hopp
-                    if (upCount < 10) {
+                    if (upCount < 10) {        // Starter hoppet raskt
                         player.setY(player.getY()-5);
                         drawPlayer(gc);
                         upCount++;
